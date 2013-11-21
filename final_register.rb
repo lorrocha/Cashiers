@@ -21,7 +21,7 @@ end
 
 
 
-def populate_item_list(file)
+def populate_item_list(file, list)
   CSV.foreach(file, headers: true) do |row|
     one_item ={}
     row.each do |array|
@@ -31,7 +31,7 @@ def populate_item_list(file)
 ## Wheeee placeholder comment
       one_item[(format_hashkey_to_sym(array[0]))] = value
   end
-    @item_list << one_item
+    list << one_item
   end
 end
 # This stuff above simply populates the current item list. Everything below is the functionality of the register
@@ -49,6 +49,6 @@ def display_menu
 
 
 
-populate_item_list('item_list.csv')
+populate_item_list('item_list.csv',@item_list)
 puts @item_list
 display_menu
