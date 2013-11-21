@@ -19,8 +19,6 @@ end
 
 
 
-
-
 def populate_item_list(file, list)
   CSV.foreach(file, headers: true) do |row|
     one_item ={}
@@ -36,19 +34,15 @@ def populate_item_list(file, list)
 end
 # This stuff above simply populates the current item list. Everything below is the functionality of the register
 
-def display_menu
-    puts "Welcome to James' coffee emporium!\n\n"
-    puts "1) Add item - $#{@item_list[0][:purchasing_price]} - #{capitalize(@item_list[0][:item_name])}"
-    puts "2) Add item - $7.50 - Medium Bag"
-    puts "3) Add item - $9.75 - Bold Bag"
-    puts "4) Complete Sale"
-  end
-
-
-
-
+def display_item_menu
+    @item_list.each_with_index do |item, index|
+      puts "#{index+1}) Add item - $#{item[:purchasing_price]} - #{capitalize(item[:item_name])}"
+    end
+    puts 'To complete sale, type "Done".'
+end
 
 
 populate_item_list('item_list.csv',@item_list)
-puts @item_list
-display_menu
+puts "Welcome to James' coffee emporium!\n\n"
+display_item_menu
+
