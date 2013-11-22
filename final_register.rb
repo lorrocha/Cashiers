@@ -78,6 +78,7 @@ def update_shopping_list
   temp_hash = {}
   temp_hash[:total_number_items] = @amount
   temp_hash[:sku] = @selection
+  temp_hash[:price] = @item_list[@selection.to_i][:purchasing_price]
   temp_hash[:item_total] = (@item_list[@selection.to_i][:purchasing_price]).to_f*@amount.to_i
   temp_hash[:name] = @item_list[@selection.to_i][:item]
   @shopping_list[@order_number] = temp_hash
@@ -87,7 +88,7 @@ end
 def display_complete_sale
   puts "===Sale Complete===\n\n\n"
   @shopping_list.each do |key, value|
-    puts "$#{format_number(@shopping_list[key][:total_number_items].to_f * @shopping_list[key][:item_total].to_f)} - #{@shopping_list[key][:total_number_items].to_i} #{capitalize(@shopping_list[key][:name])}"
+    puts "$#{format_number(@shopping_list[key][:item_total])} - #{@shopping_list[key][:total_number_items].to_i} #{capitalize(@shopping_list[key][:name])}"
   end
   puts "\n\nTotal: $#{format_number(@total)}"
 end
@@ -113,7 +114,11 @@ def calc_change
 end
 
 def unsuccessful_checkout
-  puts "WARNING: The customer still owes $#{format_number(calc_change)}! Exiting..."
+  puts "================="
+  puts "WARNING: The customer still owes $#{format_number(calc_change)}!"
+  puts "\n\n==============="
+  display_complete_sale
+  checkout
 end
 
 def successful_checkout
@@ -123,6 +128,19 @@ def successful_checkout
   puts "================"
 end
 
+def making_purchase(file, list)
+  populate_item_list(file,list)
+  display_item_menu(list)
+  select_option
+  until check_done?
+    select_amount_of_bags
+    display_subtotal
+    update_shopping_list
+    select_option
+  end
+  display_complete_sale
+  checkout
+end
 #The stuff above are methods for basic register functionality
 
 def check_done?
@@ -141,18 +159,40 @@ end
 def valid_input?
   @input.match(/\A\d*\.?\d?\d?\z/)
 end
-# #The stuff above are our validation checks
+#The stuff above are our validation checks
 
-
-populate_item_list('item_list.csv',@item_list)
-display_item_menu(@item_list)
-select_option
-until check_done?
-  select_amount_of_bags
-  display_subtotal
-  update_shopping_list
-  select_option
+def display_initial_menu
+  puts "What would you like to do? (Enter 1, 2, or 3 to make a selection)"
+  puts "1) Report"
+  puts "2) Make a Sale"
+  puts "3) Quit"
 end
-display_complete_sale
-checkout
+
+def get_initial_input
+  @choice = gets_input
+  if @choice.to_i == 1
+    #REPORT
+  elsif @choice.to_i == 2
+    making_purchase('item_list.csv', @item_list)
+  elsif @choice.to_i == 3
+    puts "Thank you for using this Register!"
+    puts "Goodbye!"
+  else
+    puts "WARNING: Not Valid Input."
+    get_initial_input
+  end
+end
+
+#The above handles the initial menu recursion
+
+
+
+
+
+while @choice.to_i != 3
+  display_initial_menu
+  get_initial_input
+end
+
+
 
