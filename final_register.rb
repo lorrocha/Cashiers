@@ -1,13 +1,18 @@
 require 'CSV'
+require 'pry'
 
-@item_list=[]
+@item_list={}
 @shopping_list = {}
+@order_number=1
+@total = 0
 
 # These methods format different inputs
-def format_hashkey_to_sym(name)
-  name.gsub!(' ','_')
-  name.downcase.intern
+def format_string_to_sym(word)
+  word.gsub!(' ', '_')
+  word.intern
 end
+
+
 
 def capitalize(name)
   names = []
@@ -17,32 +22,85 @@ def capitalize(name)
   names.join(' ')
 end
 
+def format_number(num)
+  sprintf("%.2f",num)
+end
 
+def format_number(num)
+  sprintf("%.2f",num)
+end
 
 def populate_item_list(file, list)
-  CSV.foreach(file, headers: true) do |row|
-    one_item ={}
-    row.each do |array|
-## The value is either a string or a float, so this exception tests what it is and assigns it properly
-      value = array[1].to_f
-      value = array[1] if array[1].to_f == 0.0
-## Wheeee placeholder comment
-      one_item[(format_hashkey_to_sym(array[0]))] = value
-  end
-    list << one_item
+  CSV.foreach(file, headers: true) do |line|                  #line is an array of header,value arrays
+    temp_hash = {}
+    line.each_with_index do |word, index|                     #So this is taking the array word and assigining an index
+      temp_hash[format_string_to_sym(word[0])] = word[1] unless word[0].nil? #Here I'm populating the my temp_hash with a hash of the arrays
+      new_key = temp_hash.delete(:sku)                        #Here I'm deleting the key :item and setting it's value to new_key
+      list[new_key.to_i] = temp_hash unless new_key.nil?           #Here I'm adding the temp_hash to the new_key key in the @item_list hash
+    end
   end
 end
+
 # This stuff above simply populates the current item list. Everything below is the functionality of the register
 
-def display_item_menu
-    @item_list.each_with_index do |item, index|
-      puts "#{index+1}) Add item - $#{item[:purchasing_price]} - #{capitalize(item[:item_name])}"
-    end
-    puts 'To complete sale, type "Done".'
+def display_item_menu(list)
+  list.each_with_index do |item, index|
+    puts "#{item[0]}) Add item - $#{item[1][:purchasing_price]} - #{capitalize(item[1][:item])}"
+  end
+  puts 'To complete the transaction type "Done".'
 end
+
+def gets_input
+  @input = gets.chomp
+end
+
+def select_option
+  puts "Make a selection:"
+  @selection = gets_input
+  select_option unless valid_selection?
+end
+
+def select_amount_of_bags
+  puts "How many bags?"
+  @amount = gets_input
+  select_amount_of_bags unless valid_numeric?
+end
+
+def display_subtotal
+    @total += ((@item_list[@selection.to_i][:purchasing_price]).to_f*@amount.to_i)
+    puts "Subtotal: $#{format_number(@total)}"
+end
+
+def update_shopping_list
+  @shopping_list[@order_number] = {}
+  @shopping_list[@order_number] = {date:(Time.new.strftime("%Y-%m-%d")),time:(Time.new.strftime("%H:%M:%S"))}
+  @order_number +=1
+end
+
+#The stuff above are methods for basic register functionality
+
+def check_done?
+  @input.downsize == "done"
+end
+
+def valid_selection?
+  valid_numeric? && (@input.to_i <= (@item_list.length))
+end
+
+def valid_numeric?
+  @input.match(/\A\d*\z/) && @input.to_i != 0
+end
+
+def valid_input?
+  @input.match(/\A\d*\.?\d?\d?\z/)
+end
+# #The stuff above are our validation checks
 
 
 populate_item_list('item_list.csv',@item_list)
-puts "Welcome to James' coffee emporium!\n\n"
-display_item_menu
+display_item_menu(@item_list)
+select_option
+select_amount_of_bags
+display_subtotal
+binding.pry
 
